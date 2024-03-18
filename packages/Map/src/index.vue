@@ -170,6 +170,7 @@
 import "weui";
 import Debounce from "./debounce";
 import position from "../assets/position.png";
+const TIANANMEN = { lng: 116.3974501246199, lat: 39.909187895034684 };
 export default {
   name: "Map",
   props: {
@@ -301,10 +302,7 @@ export default {
                   resolve();
                 },
                 () => {
-                  this.$emit("update:location", {
-                    lng: 116.39764,
-                    lat: 39.90639,
-                  });
+                  this.$emit("update:location", TIANANMEN);
                   resolve();
                 },
                 {
@@ -397,20 +395,21 @@ export default {
       if (
         this.location &&
         this.location.hasOwnProperty("lat") &&
-        this.location.hasOwnProperty("lng")
+        this.location.hasOwnProperty("lng") &&
+        this.location.lat !== 0 &&
+        this.location.lng !== 0
       ) {
         return this.location;
       } else if (
         this.currentLocation &&
         this.currentLocation.hasOwnProperty("lat") &&
-        this.currentLocation.hasOwnProperty("lng")
+        this.currentLocation.hasOwnProperty("lng") &&
+        this.currentLocation.lat !== 0 &&
+        this.currentLocation.lng !== 0
       ) {
         return this.currentLocation;
       } else {
-        return {
-          lat: 39.90639,
-          lng: 116.39764,
-        };
+        return TIANANMEN;
       }
     },
     searchByText() {
