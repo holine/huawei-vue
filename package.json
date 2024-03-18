@@ -1,6 +1,11 @@
 {
   "name": "@holine/huawei-vue",
   "version": "0.0.3",
+  "author": {
+    "name": "holine",
+    "email": "admin@holine.studio"
+  },
+  "license": "MIT",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
