@@ -125,7 +125,7 @@
         style="align-items: flex-start"
         @click="
           map.setCenter(item.location);
-          location = item.location;
+          $emit('update:location', item.location);
           locationData = [item];
           seaching = false;
         "
@@ -185,12 +185,9 @@ export default {
       type: Number,
       default: 300,
     },
-    defaultLocation: {
+    location: {
       type: Object,
-      default: () => ({
-        lng: 116.39764,
-        lat: 39.90639,
-      }),
+      required: true,
     },
   },
   data() {
@@ -198,9 +195,7 @@ export default {
       map: null,
       seaching: false,
       keyword: "",
-      timer: null,
       marker: null,
-      location: null,
       locationData: [],
       currentLocation: null,
       currentLocationData: [],
@@ -225,7 +220,7 @@ export default {
           this.nearbySearchTotal = 0;
           this.nearbySearchData = [];
           this.nearbySearchPage = 1;
-          this.location = location;
+          this.$emit("update:location", location);
           this.reverseGeocode(location).then((result) => {
             this.locationData = [result];
           }, console.error);
@@ -282,75 +277,116 @@ export default {
           encodeURIComponent(this.apiKey);
         document.head.appendChild(script);
       }
-    }).then(() =>
-      this.$watch(
-        "option",
-        () => {
-          Promise.all([
-            new Promise((resolve) => {
-              this.map = new window.HWMapJsSDK.HWMap(
-                this.$refs.map,
-                Object.assign(
-                  {
-                    zoom: 15,
-                    center: this.defaultLocation,
-                    copyrightControl: false,
-                    locationControl: true,
-                    zoomControl: false,
-                    language: "CHI",
-                    sourceType: "vector",
-                  },
-                  this.option
-                )
-              );
-              this.map.setCopyrightControl(false);
-              this.map.setLocationControl(true);
-              this.map.on("click", ({ coordinate }) =>
-                this.centerChanged.run(
-                  window.HWMapJsSDK.HWMapUtils.epsgToLatLng(coordinate)
-                )
-              );
-              this.map.on("pointerup", () =>
-                this.centerChanged.run(this.map.getCenter())
-              );
+    })
+      .then(
+        () =>
+          new Promise((resolve) => {
+            if (
+              this.location.hasOwnProperty("lat") &&
+              this.location.hasOwnProperty("lng")
+            ) {
               resolve();
-            }),
-            this.getCurrentPosition(),
-          ]).then(() => {
-            this.nearbySearchPage = 1;
-          });
-        },
-        { immediate: true, deep: true }
+            } else {
+              window.navigator.geolocation.getCurrentPosition(
+                ({ coords }) => {
+                  this.$emit(
+                    "update:location",
+                    window.HWMapJsSDK.HWCoordinateConverter.convert([
+                      {
+                        lat: coords.latitude,
+                        lng: coords.longitude,
+                      },
+                    ])[0]
+                  );
+                  resolve();
+                },
+                () => {
+                  this.$emit("update:location", {
+                    lng: 116.39764,
+                    lat: 39.90639,
+                  });
+                  resolve();
+                },
+                {
+                  enableHighAccuracy: true,
+                  timeout: 5000,
+                  maximumAge: 0,
+                }
+              );
+            }
+          })
       )
-    );
+      .then(() =>
+        this.$watch(
+          "option",
+          () => {
+            Promise.all([
+              new Promise((resolve) => {
+                this.map = new window.HWMapJsSDK.HWMap(
+                  this.$refs.map,
+                  Object.assign(
+                    {
+                      zoom: 15,
+                      center: this.location,
+                      copyrightControl: false,
+                      locationControl: true,
+                      zoomControl: false,
+                      language: "CHI",
+                      sourceType: "vector",
+                    },
+                    this.option
+                  )
+                );
+                this.map.setCopyrightControl(false);
+                this.map.setLocationControl(true);
+                this.map.on("click", ({ coordinate }) =>
+                  this.centerChanged.run(
+                    window.HWMapJsSDK.HWMapUtils.epsgToLatLng(coordinate)
+                  )
+                );
+                this.map.on("pointerup", () =>
+                  this.centerChanged.run(this.map.getCenter())
+                );
+                resolve();
+              }),
+              this.getCurrentPosition(),
+            ]).then(() => {
+              this.nearbySearchPage = 1;
+            });
+          },
+          { immediate: true, deep: true }
+        )
+      );
   },
   computed: {
     isCurrentLocation() {
-      if (this.locationData.length) {
-        if (this.currentLocationData.length) {
-          return (
-            this.locationData[0].siteId === this.currentLocationData[0].siteId
-          );
-        } else {
-          return false;
-        }
-      } else {
-        return true;
+      if (
+        this.location &&
+        this.currentLocation &&
+        this.location.hasOwnProperty("lat") &&
+        this.location.hasOwnProperty("lng") &&
+        this.currentLocation.hasOwnProperty("lat") &&
+        this.currentLocation.hasOwnProperty("lng")
+      ) {
+        return (
+          this.location.lat === this.currentLocation.lat &&
+          this.location.lng === this.currentLocation.lng
+        );
       }
     },
     data() {
-      if (this.location) {
-        return this.locationData.concat(
-          this.nearbySearchData.filter((item) => {
-            return this.locationData.every((i) => i.siteId !== item.siteId);
-          })
-        );
-      } else if (this.currentLocation) {
+      if (this.isCurrentLocation) {
         return this.currentLocationData.concat(
           this.nearbySearchData.filter((item) => {
             return this.currentLocationData.every(
               (i) => i.siteId !== item.siteId
             );
+          })
+        );
+      } else if (this.locationData.length) {
+        return this.locationData.concat(
+          this.nearbySearchData.filter((item) => {
+            return this.locationData.every((i) => i.siteId !== item.siteId);
           })
         );
       } else {
@@ -361,8 +397,7 @@ export default {
       return {
         Location: this.location,
         currentLocation: this.currentLocation,
-        defaultLocation: this.defaultLocation,
-        location: this.currentLocation || this.location || this.defaultLocation,
+        location: this.location || this.currentLocation,
         query: this.keyword.trim(),
         pageIndex: this.searchByTextPage,
       };
@@ -371,8 +406,7 @@ export default {
       return {
         Location: this.location,
         currentLocation: this.currentLocation,
-        defaultLocation: this.defaultLocation,
-        location: this.currentLocation || this.location || this.defaultLocation,
+        location: this.location || this.currentLocation,
         pageIndex: this.nearbySearchPage,
       };
     },
@@ -461,50 +495,45 @@ export default {
       return new Promise((resolve) =>
         window.navigator.geolocation.getCurrentPosition(
           ({ coords }) =>
-            this.reverseGeocode({
-              lat: coords.latitude,
-              lng: coords.longitude,
-            })
-              .then((result) => {
-                this.currentLocation = {
+            new Promise((resolve) => {
+              const location = window.HWMapJsSDK.HWCoordinateConverter.convert([
+                {
                   lat: coords.latitude,
                   lng: coords.longitude,
-                };
-                this.currentLocationData = [
-                  {
-                    ...result,
-                    name: "我的位置",
-                  },
-                ];
-                if (this.marker) {
-                  this.marker.setPosition(this.currentLocation);
-                } else {
-                  this.marker = new HWMapJsSDK.HWMarker({
-                    map: this.map,
-                    position: this.currentLocation,
-                    zIndex: 10,
-                    icon: {
-                      anchor: [0.5, 0.5],
-                      scale: 0.5,
-                      url: position,
+                },
+              ])[0];
+              this.$emit("update:location", location);
+              this.currentLocation = location;
+              this.reverseGeocode(location)
+                .then((result) => {
+                  this.currentLocationData = [
+                    {
+                      ...result,
+                      name: "我的位置",
                     },
-                  });
-                }
-              })
-              .catch(() => {
-                this.currentLocation = {
-                  lat: coords.latitude,
-                  lng: coords.longitude,
-                };
-                this.currentLocationData = [];
-                this.marker.setMap(null);
-                this.marker = null;
-              })
-              .finally(() => {
-                this.location = null;
-                this.locationData = [];
-                resolve();
-              }),
+                  ];
+                  if (this.marker) {
+                    this.marker.setPosition(location);
+                  } else {
+                    this.marker = new HWMapJsSDK.HWMarker({
+                      map: this.map,
+                      position: location,
+                      zIndex: 10,
+                      icon: {
+                        anchor: [0.5, 0.5],
+                        scale: 0.5,
+                        url: position,
+                      },
+                    });
+                  }
+                })
+                .catch(() => {
+                  this.currentLocationData = [];
+                  this.marker.setMap(null);
+                  this.marker = null;
+                })
+                .finally(resolve);
+            }).finally(resolve),
           resolve,
           {
             enableHighAccuracy: true,
