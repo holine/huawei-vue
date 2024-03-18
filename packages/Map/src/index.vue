@@ -340,16 +340,16 @@ export default {
                 this.map.setCopyrightControl(false);
                 this.map.setLocationControl(true);
                 this.map.on("click", ({ coordinate }) =>
-                  this.centerChanged.run(
+                  this.map.setCenter(
                     window.HWMapJsSDK.HWMapUtils.epsgToLatLng(coordinate)
                   )
                 );
-                this.map.on("pointerup", () =>
+                this.map.onCenterChanged(() =>
                   this.centerChanged.run(this.map.getCenter())
                 );
                 resolve();
               }),
-              this.getCurrentPosition(),
+              this.getCurrentPosition().catch(console.error),
             ]).then(() => {
               this.nearbySearchPage = 1;
             });
@@ -492,7 +492,7 @@ export default {
       }, console.error);
     },
     getCurrentPosition() {
-      return new Promise((resolve) =>
+      return new Promise((resolve, reject) =>
         window.navigator.geolocation.getCurrentPosition(
           ({ coords }) =>
             new Promise((resolve) => {
@@ -534,7 +534,7 @@ export default {
                 })
                 .finally(resolve);
             }).finally(resolve),
-          resolve,
+          reject,
           {
             enableHighAccuracy: true,
             timeout: 5000,
