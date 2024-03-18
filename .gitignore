@@ -22,7 +22,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 lib
-packages/index.js
 package-lock.json
 Dockerfile
 package-lock.json
