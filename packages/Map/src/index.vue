@@ -393,20 +393,36 @@ export default {
         return this.nearbySearchData;
       }
     },
+    LOCATION() {
+      if (
+        this.location &&
+        this.location.hasOwnProperty("lat") &&
+        this.location.hasOwnProperty("lng")
+      ) {
+        return this.location;
+      } else if (
+        this.currentLocation &&
+        this.currentLocation.hasOwnProperty("lat") &&
+        this.currentLocation.hasOwnProperty("lng")
+      ) {
+        return this.currentLocation;
+      } else {
+        return {
+          lat: 39.90639,
+          lng: 116.39764,
+        };
+      }
+    },
     searchByText() {
       return {
-        Location: this.location,
-        currentLocation: this.currentLocation,
-        location: this.location || this.currentLocation,
+        location: this.LOCATION,
         query: this.keyword.trim(),
         pageIndex: this.searchByTextPage,
       };
     },
     nearbySearch() {
       return {
-        Location: this.location,
-        currentLocation: this.currentLocation,
-        location: this.location || this.currentLocation,
+        location: this.LOCATION,
         pageIndex: this.nearbySearchPage,
       };
     },
