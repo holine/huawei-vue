@@ -1,13 +1,18 @@
 {
-  "name": "huawei-map-vue",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@holine/huawei-vue",
+  "version": "0.0.1",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "lib": "node build.js; vue-cli-service build --target lib --name huawei --dest lib packages/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holine/huawei-vue.git"
   },
   "dependencies": {
-    "vue": "^2.6.14"
+    "vue": "^2.6.14",
+    "weui": "^2.6.11"
   },
   "devDependencies": {
     "@vue/cli-service": "~5.0.0",
