@@ -461,15 +461,16 @@ export default {
       return new Promise((resolve) =>
         window.navigator.geolocation.getCurrentPosition(
           ({ coords }) =>
-            this.reverseGeocode({
-              lat: coords.latitude,
-              lng: coords.longitude,
-            })
-              .then((result) => {
-                this.currentLocation = {
+            this.reverseGeocode(
+              window.HWMapJsSDK.HWCoordinateConverter.convert([
+                {
                   lat: coords.latitude,
                   lng: coords.longitude,
-                };
+                },
+              ])[0]
+            )
+              .then((result) => {
+                this.currentLocation = result.location;
                 this.currentLocationData = [
                   {
                     ...result,
