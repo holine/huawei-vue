@@ -1,6 +1,6 @@
 <template>
   <div class="huawei-map">
-    <div class="weui-search-bar">
+    <div v-if="mode === 'full'" class="weui-search-bar">
       <form
         role="combobox"
         aria-haspopup="true"
@@ -190,6 +190,10 @@ export default {
       type: Object,
       required: true,
     },
+    mode: {
+      type: String,
+      default: "full",
+    },
   },
   data() {
     return {
@@ -223,7 +227,7 @@ export default {
           this.nearbySearchPage = 1;
           this.$emit("update:location", location);
           this.reverseGeocode(location).then((result) => {
-            this.locationData = [result];
+            this.locationData = this.mode === "full" ? [result] : result;
           }, console.error);
           this.$refs.map.parentElement.classList.add("bounceInDown");
           setTimeout(() => {
@@ -347,7 +351,19 @@ export default {
                 );
                 resolve();
               }),
-              this.getCurrentPosition().catch(console.error),
+              this.getCurrentPosition()
+                .then(() => {
+                  if (this.mode !== "full") {
+                    this.reverseGeocode(this.location)
+                      .then((result) => {
+                        this.currentLocationData = result;
+                      })
+                      .catch(() => {
+                        this.currentLocationData = [];
+                      });
+                  }
+                })
+                .catch(console.error),
             ]).then(() => {
               this.nearbySearchPage = 1;
             });
@@ -469,6 +485,7 @@ export default {
       }
     },
     nearbySearch(newValue, oldValue) {
+      if (this.mode !== "full") return;
       if (
         oldValue &&
         oldValue.pageIndex === newValue.pageIndex &&
@@ -498,7 +515,7 @@ export default {
   },
   methods: {
     getCurrentPositionManual() {
-      this.getCurrentPosition().then(() => {
+      this.getCurrentPosition(true).then(() => {
         this.map.setCenter(this.currentLocation);
         this.$refs.map.parentElement.classList.add("bounceInDown");
         setTimeout(() => {
@@ -506,7 +523,7 @@ export default {
         }, 800);
       }, console.error);
     },
-    getCurrentPosition() {
+    getCurrentPosition(manual) {
       return new Promise((resolve, reject) =>
         window.navigator.geolocation.getCurrentPosition(
           ({ coords }) =>
@@ -519,35 +536,42 @@ export default {
               ])[0];
               this.$emit("update:location", location);
               this.currentLocation = location;
-              this.reverseGeocode(location)
-                .then((result) => {
-                  this.currentLocationData = [
-                    {
-                      ...result,
-                      name: "我的位置",
-                    },
-                  ];
-                  if (this.marker) {
-                    this.marker.setPosition(location);
-                  } else {
-                    this.marker = new HWMapJsSDK.HWMarker({
-                      map: this.map,
-                      position: location,
-                      zIndex: 10,
-                      icon: {
-                        anchor: [0.5, 0.5],
-                        scale: 0.5,
-                        url: position,
-                      },
-                    });
-                  }
-                })
-                .catch(() => {
-                  this.currentLocationData = [];
-                  this.marker.setMap(null);
-                  this.marker = null;
-                })
-                .finally(resolve);
+              if (this.marker) {
+                this.marker.setPosition(location);
+              } else {
+                this.marker = new HWMapJsSDK.HWMarker({
+                  map: this.map,
+                  position: location,
+                  zIndex: 10,
+                  icon: {
+                    anchor: [0.5, 0.5],
+                    scale: 0.5,
+                    url: position,
+                  },
+                });
+              }
+              if (this.mode === "full") {
+                this.reverseGeocode(location)
+                  .then((result) => {
+                    this.currentLocationData =
+                      this.mode === "full"
+                        ? [
+                            {
+                              ...result,
+                              name: "我的位置",
+                            },
+                          ]
+                        : result;
+                  })
+                  .catch(() => {
+                    this.currentLocationData = [];
+                    this.marker.setMap(null);
+                    this.marker = null;
+                  })
+                  .finally(resolve);
+              } else {
+                resolve();
+              }
             }).finally(resolve),
           reject,
           {
@@ -566,7 +590,7 @@ export default {
           },
           (result, status) => {
             if (status === "0" && result.sites.length > 0) {
-              resolve(result.sites[0]);
+              resolve(this.mode === "full" ? result.sites[0] : result.sites);
             } else {
               reject({ status, result });
             }
