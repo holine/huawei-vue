@@ -168,6 +168,7 @@
 </template>
 <script>
 import "weui";
+import './index.css';
 import Debounce from "./debounce";
 import position from "../assets/position.png";
 const TIANANMEN = { lng: 116.3974501246199, lat: 39.909187895034684 };
@@ -624,8 +625,6 @@ export default {
 };
 </script>
 <style scoped>
-@import url("./index.css");
-
 :deep(.hwmap-controls-container-L) {
   display: none !important;
 }
