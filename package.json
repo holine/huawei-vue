@@ -20,6 +20,7 @@
     "weui": "^2.6.11"
   },
   "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "vue-template-compiler": "^2.6.14"
   },
