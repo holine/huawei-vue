@@ -1,6 +1,6 @@
 <template>
   <div class="huawei-map">
-    <div v-if="mode === 'full'" class="weui-search-bar">
+    <div v-if="isMode('search')" class="weui-search-bar">
       <form
         role="combobox"
         aria-haspopup="true"
@@ -190,7 +190,7 @@ export default {
       required: true,
     },
     mode: {
-      type: String,
+      type: [String, Array],
       default: "full",
     },
   },
@@ -226,7 +226,7 @@ export default {
           this.nearbySearchPage = 1;
           this.$emit("update:location", location);
           this.reverseGeocode(location).then((result) => {
-            this.locationData = this.mode === "full" ? [result] : result;
+            this.locationData = this.isMode("full") ? [result] : result;
           }, console.error);
           this.$refs.map.parentElement.classList.add("bounceInDown");
           setTimeout(() => {
@@ -352,7 +352,7 @@ export default {
               }),
               this.getCurrentPosition()
                 .then(() => {
-                  if (this.mode !== "full") {
+                  if (!this.isMode("full")) {
                     this.reverseGeocode(this.location)
                       .then((result) => {
                         this.currentLocationData = result;
@@ -484,7 +484,7 @@ export default {
       }
     },
     nearbySearch(newValue, oldValue) {
-      if (this.mode !== "full") return;
+      if (!this.isMode("full")) return;
       if (
         oldValue &&
         oldValue.pageIndex === newValue.pageIndex &&
@@ -513,6 +513,17 @@ export default {
     },
   },
   methods: {
+    isMode(mode) {
+      if (this.mode) {
+        if (Array.isArray(this.mode)) {
+          return this.mode.includes("full") || this.mode.includes(mode);
+        } else {
+          return this.mode === "full" || this.mode === mode;
+        }
+      } else {
+        return false;
+      }
+    },
     getCurrentPositionManual() {
       this.getCurrentPosition(true).then(() => {
         this.map.setCenter(this.currentLocation);
@@ -549,18 +560,17 @@ export default {
                   },
                 });
               }
-              if (this.mode === "full") {
+              if (this.isMode("full")) {
                 this.reverseGeocode(location)
                   .then((result) => {
-                    this.currentLocationData =
-                      this.mode === "full"
-                        ? [
-                            {
-                              ...result,
-                              name: "我的位置",
-                            },
-                          ]
-                        : result;
+                    this.currentLocationData = this.isMode("full")
+                      ? [
+                          {
+                            ...result,
+                            name: "我的位置",
+                          },
+                        ]
+                      : result;
                   })
                   .catch(() => {
                     this.currentLocationData = [];
@@ -589,7 +599,7 @@ export default {
           },
           (result, status) => {
             if (status === "0" && result.sites.length > 0) {
-              resolve(this.mode === "full" ? result.sites[0] : result.sites);
+              resolve(this.isMode("full") ? result.sites[0] : result.sites);
             } else {
               reject({ status, result });
             }
