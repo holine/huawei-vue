@@ -8,7 +8,7 @@
         aria-expanded="false"
         aria-owns="searchResult"
         class="weui-search-bar__form"
-        @submit.prevent
+        @submit.prevent="$refs.searchInput.blur()"
         action="javascript:void(0);"
       >
         <div class="weui-search-bar__box">
