@@ -2,15 +2,20 @@
   <div class="huawei-map">
     <div v-if="isMode('search')" class="weui-search-bar">
       <form
+        ref="searchForm"
         role="combobox"
         aria-haspopup="true"
         aria-expanded="false"
         aria-owns="searchResult"
         class="weui-search-bar__form"
+        @submit.prevent
+        action="javascript:void(0);"
       >
         <div class="weui-search-bar__box">
           <i class="weui-icon-search" />
           <input
+            ref="searchInput"
+            type="search"
             aria-controls="searchResult"
             class="weui-search-bar__input"
             placeholder="搜索地点"
@@ -33,23 +38,39 @@
           class="weui-search-bar__label"
           wah-hotarea="click"
           style="transform-origin: 0px 0px; opacity: 1; transform: scale(1, 1)"
-          @click="seaching = true"
+          @click="
+            seaching = true;
+            $refs.searchInput.focus();
+          "
         >
           <i class="weui-icon-search"></i>
           <span aria-hidden="true">搜索地点</span>
         </label>
       </form>
-      <a
-        v-if="seaching"
-        href="javascript:"
-        role="button"
-        class="weui-search-bar__cancel-btn"
-        wah-hotarea="click"
-        style="display: block"
-        @click="seaching = false"
-      >
-        取消
-      </a>
+      <template v-if="seaching">
+        <a
+          v-if="keyword.length"
+          href="javascript:"
+          role="button"
+          class="weui-search-bar__cancel-btn"
+          wah-hotarea="click"
+          style="display: block"
+          @click="$refs.searchForm.submit()"
+        >
+          搜索
+        </a>
+        <a
+          v-else
+          href="javascript:"
+          role="button"
+          class="weui-search-bar__cancel-btn"
+          wah-hotarea="click"
+          style="display: block"
+          @click="seaching = false"
+        >
+          取消
+        </a>
+      </template>
     </div>
     <div
       class="map-container"
