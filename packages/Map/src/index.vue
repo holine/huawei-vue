@@ -11,7 +11,6 @@
         <div class="weui-search-bar__box">
           <i class="weui-icon-search" />
           <input
-            type="search"
             aria-controls="searchResult"
             class="weui-search-bar__input"
             placeholder="搜索地点"
