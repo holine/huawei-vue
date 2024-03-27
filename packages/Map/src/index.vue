@@ -72,6 +72,78 @@
         </a>
       </template>
     </div>
+    <div v-else-if="isMode('search-manual')" class="weui-search-bar">
+      <form
+        ref="searchManualForm"
+        role="combobox"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-owns="searchResult"
+        class="weui-search-bar__form"
+        @submit.prevent="$refs.searchInput.blur();keyword = Keyword"
+        action="javascript:void(0);"
+      >
+        <div class="weui-search-bar__box">
+          <i class="weui-icon-search" />
+          <input
+            ref="searchInput"
+            type="search"
+            aria-controls="searchResult"
+            class="weui-search-bar__input"
+            placeholder="搜索地点"
+            required=""
+            v-model="Keyword"
+          />
+          <a
+            v-if="Keyword.trim() !== ''"
+            href="javascript:"
+            role="button"
+            title="清除"
+            class="weui-icon-clear"
+            wah-hotarea="click"
+            @click="Keyword = ''"
+          ></a>
+        </div>
+        <label
+          v-if="!seaching"
+          for="searchInput"
+          class="weui-search-bar__label"
+          wah-hotarea="click"
+          style="transform-origin: 0px 0px; opacity: 1; transform: scale(1, 1)"
+          @click="
+            seaching = true;
+            $refs.searchInput.focus();
+          "
+        >
+          <i class="weui-icon-search"></i>
+          <span aria-hidden="true">搜索地点</span>
+        </label>
+      </form>
+      <template v-if="seaching">
+        <a
+          v-if="Keyword.length"
+          href="javascript:"
+          role="button"
+          class="weui-search-bar__cancel-btn"
+          wah-hotarea="click"
+          style="display: block"
+          @click="$refs.searchManualForm.submit()"
+        >
+          搜索
+        </a>
+        <a
+          v-else
+          href="javascript:"
+          role="button"
+          class="weui-search-bar__cancel-btn"
+          wah-hotarea="click"
+          style="display: block"
+          @click="seaching = false"
+        >
+          取消
+        </a>
+      </template>
+    </div>
     <div
       class="map-container"
       :class="{
@@ -219,6 +291,7 @@ export default {
       map: null,
       seaching: false,
       keyword: "",
+      Keyword: "",
       marker: null,
       locationData: [],
       currentLocation: null,
