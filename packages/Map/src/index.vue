@@ -80,13 +80,16 @@
         aria-expanded="false"
         aria-owns="searchResult"
         class="weui-search-bar__form"
-        @submit.prevent="$refs.searchInput.blur();keyword = Keyword"
+        @submit.prevent="
+          $refs.searchManualInput.blur();
+          keyword = Keyword;
+        "
         action="javascript:void(0);"
       >
         <div class="weui-search-bar__box">
           <i class="weui-icon-search" />
           <input
-            ref="searchInput"
+            ref="searchManualInput"
             type="search"
             aria-controls="searchResult"
             class="weui-search-bar__input"
@@ -101,18 +104,21 @@
             title="清除"
             class="weui-icon-clear"
             wah-hotarea="click"
-            @click="Keyword = ''"
+            @click="
+              Keyword = '';
+              keyword = '';
+            "
           ></a>
         </div>
         <label
           v-if="!seaching"
-          for="searchInput"
+          for="searchManualInput"
           class="weui-search-bar__label"
           wah-hotarea="click"
           style="transform-origin: 0px 0px; opacity: 1; transform: scale(1, 1)"
           @click="
             seaching = true;
-            $refs.searchInput.focus();
+            $refs.searchManualInput.focus();
           "
         >
           <i class="weui-icon-search"></i>
@@ -127,7 +133,7 @@
           class="weui-search-bar__cancel-btn"
           wah-hotarea="click"
           style="display: block"
-          @click="$refs.searchManualForm.submit()"
+          @click="keyword = Keyword"
         >
           搜索
         </a>
