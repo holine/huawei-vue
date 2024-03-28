@@ -1,45 +1,32 @@
-class Debounce {
-    #queue = []
-    #timer = null
-    #delay = 0
-    #fn = null
-    constructor(fn, delay) {
-        this.fn = fn
-        this.delay = delay
-        this.timer = null
-        this.queue = []
-    }
 
-    run(...args) {
-        return new Promise((resolve, reject) => {
-            clearTimeout(this.timer)
-            this.timer = setTimeout(() => {
-                const key = Math.random().toString(36) + Math.random().toString(36);
-                this.queue.push(key)
-                this.fn(...args).then((...data) => {
-                    const index = this.queue.indexOf(key)
+export default function (fn, delay) {
+    let timer = null
+    const queue = []
+    return {
+        run() {
+            return new Promise((resolve, reject) => {
+                clearTimeout(timer)
+                const key = new Date().getTime().toString(36) + Math.random().toString(36) + Math.random().toString(36);
+                queue.push(key)
+                timer = setTimeout(() => fn.apply(null, arguments).then(function () {
+                    const index = queue.indexOf(key)
                     if (index > -1) {
-                        if (this.queue.length === index + 1) {
-                            this.queue.length = 0
-                            resolve(...data)
+                        if (queue.length === index + 1) {
+                            queue.length = 0
+                            resolve.apply(null, arguments)
                         } else {
-                            this.queue.splice(index, 1)
+                            queue.splice(index, 1)
                         }
                     }
-                }, (...data) => {
-                    reject(...data)
-                })
-            }, this.delay)
-        })
+                }, reject), delay)
+            })
+        },
+        loading() {
+            return queue.length > 0
+        },
+        cancel() {
+            clearTimeout(timer)
+            queue.length = 0
+        }
     }
-
-    loading() {
-        return this.queue.length > 0
-    }
-
-    cancel() {
-        clearTimeout(this.timer)
-        this.queue.length = 0
-    }
-}
-export default Debounce
+};
