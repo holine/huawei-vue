@@ -5,9 +5,9 @@
     "name": "holine",
     "email": "admin@holine.studio"
   },
-  "main": "lib/huawei.umd.min.js",
+  "main": "packages/index.js",
   "files": [
-    "lib"
+    "packages"
   ],
   "license": "MIT",
   "scripts": {
@@ -20,7 +20,7 @@
     "url": "git+https://github.com/holine/huawei-vue.git"
   },
   "dependencies": {
-    "vue": "^2.7.16"
+    "vue": "^2.6.14"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
