@@ -30,8 +30,9 @@ const install = (Vue) => {
 if (typeof window !== 'undefined' && window.Vue) {
     install(window.Vue)
 }
-export default {
+export {
     install,
     ${Object.values(components).join(',\n    ')}
-}`;
+}
+export default install`;
 fs.writeFileSync(__dirname + '/packages/index.js', content)
