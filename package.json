@@ -5,6 +5,10 @@
     "name": "holine",
     "email": "admin@holine.studio"
   },
+  "main": "lib/huawei.umd.min.js",
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "scripts": {
     "serve": "vue-cli-service serve",
