@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import huawei from '../packages'
+import 'weui'
 
 Vue.config.productionTip = false
 
